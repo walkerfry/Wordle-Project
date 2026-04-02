@@ -1,0 +1,12 @@
+adder
+black
+crane
+learn
+quake
+snake
+apple
+hello
+happy
+brown
+green
+pipes
