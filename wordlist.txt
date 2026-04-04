@@ -18,3 +18,13 @@ uncle
 shave
 hours
 flush
+bread
+chair
+dance
+flame
+grasp
+house
+jolly
+kites
+lemon
+stick
