@@ -1,10 +1,11 @@
 
 import random
 
+#Player Class
 class Player:
     def __init__(self, name):
         self.name = name
-        self.guesses = 6
+        self.guesses = []
 
     def submit_guess(self, guess):
         self.guesses.append(guess)
@@ -15,7 +16,15 @@ class Player:
     def word_guesses(self):
         return self.guesses
     
+#Wordbank Class
+class Wordchoice:
+    def __init__(self):
+        self.words = ["apple", "grape", "green", "bread", "welch", "light", "house", "clean"]
 
+    def get_random_word(self):
+        return random.choice(self.words)
+    
+#Game Class
 class Game:
     def __init__(self, player_name):
         self.player = Player(player_name)
@@ -26,20 +35,26 @@ class Game:
 
     def start_game(self):
         print("Welcome", self.player.name)
+        print("Guess 5-Letter Word!")
+        print("You will have", self.max_guesses, "attempts.\n")
 
         while not self.gameover():
             guess = input("Enter guess: ").lower()
 
+            if len(guess) != 5:
+                print("Enter 5-Letter word only!\n")
+                continue
+            
             self.player.submit_guess(guess)
             self.attempts += 1
 
-            if guess ==self.secret_word:
+            if guess == self.secret_word:
                 print("You Win!")
                 return
             
             self.result(self.guess_checker(guess))
         
-        print("Game Over! Word was:", self.secret_word[i])
+        print("Game Over! Word was:", self.secret_word)
 
     def guess_checker(self, guess):
         result = ""
@@ -56,6 +71,8 @@ class Game:
     
     def result(self, feedback):
         print("Result:", feedback)
+        print("Past Guesses:", self.player.word_guesses())
+        print()
 
     def gameover(self):
         return self.attempts >= self.max_guesses
