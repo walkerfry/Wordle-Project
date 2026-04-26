@@ -1,5 +1,6 @@
 import random
 
+#Player Class
 class Player:
     def __init__(self, name):
         self.name = name
@@ -14,7 +15,15 @@ class Player:
     def word_guesses(self):
         return self.guesses
     
+#Wordbank Class
+class Wordchoice:
+    def __init__(self):
+        self.words = ["apple", "grape", "green", "bread", "welch", "light", "house", "clean"]
 
+    def get_random_word(self):
+        return random.choice(self.words)
+    
+#Game Class
 class Game:
     def __init__(self, player_name):
         self.player = Player(player_name)
@@ -25,6 +34,8 @@ class Game:
 
     def start_game(self):
         print("Welcome", self.player.name)
+        print("Guess 5-Letter Word!")
+        print("You will have", self.max_guesses, "attempts.\n")
 
         while not self.gameover():
             guess = input(f"Enter guess ({self.attempts+1}/6): ").lower()
@@ -67,6 +78,8 @@ class Game:
     
     def result(self, feedback):
         print("Result:", feedback)
+        print("Past Guesses:", self.player.word_guesses())
+        print()
 
     def gameover(self):
         return self.attempts >= self.max_guesses
