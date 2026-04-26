@@ -1,4 +1,3 @@
-
 import random
 #Colors Code 
 #Use these links to figure out how to use color
@@ -37,8 +36,8 @@ class Wordchoice:
 class Game:
     def __init__(self, player_name):
         self.player = Player(player_name)
-        self.word_bank = Wordchoice()
-        self.secret_word = self.word_bank.get_random_word()
+        self.word_bank = WordChoice()
+        self.secret_word = self.word_bank.random_word().lower()
         self.max_guesses = 6
         self.attempts = 0
 
@@ -50,33 +49,38 @@ class Game:
         while not self.gameover():
             guess = input("Enter guess: ").lower()
 
-            if len(guess) != 5:
-                print("Enter 5-Letter word only!\n")
-                continue
-            
             self.player.submit_guess(guess)
             self.attempts += 1
 
-            if guess == self.secret_word:
+            if guess ==self.secret_word:
                 print("You Win!")
                 return
             
-            self.result(self.guess_checker(guess))
+            self.result(feedback)
         
         print("Game Over! Word was:", self.secret_word)
 
     def guess_checker(self, guess):
-        result = ""
+        result = ["_"] * 5
+        secret = list(self.secret_word)
 
+        if len(guess) != 5 or not guess.isalpha():
+            return "Invalid Guess: guess must be a 5 letter word"
+        
+        for i in range(5):
+            if guess[i] == secret[i]:
+                result[i] = guess[i].upper()
+                secret[i] = None
+            
         for i in range(5):
             if guess[i] == self.secret_word[i]:
-                result += GREEN + guess[i].upper() + RESET + " "
+                result += guess[i].upper()
             elif guess[i] in self.secret_word:
-                result += YELLOW + guess[i].upper() + RESET + " "
+                result += guess[i]
             else:
-                result +=  GREY + guess[i].upper() + RESET + " "
+                result += "_"
         
-        return result
+        return "".join(result)
     
     def result(self, feedback):
         print("Result:", feedback)
@@ -85,8 +89,30 @@ class Game:
 
     def gameover(self):
         return self.attempts >= self.max_guesses
+
+
+class WordChoice():
+    def __init__(self):
+        self.word_list = self.load_words()
+
+    def load_words(self):
+        with open("wordlist.txt", "r") as file:
+            words = file.read().splitlines()
+        return words
     
+    def random_word(self):
+        return random.choice(self.word_list)
+    
+    def add_word(self, word):
+        self.word_list.append(word)
+
+    def remove_word(self, word):
+        if word in self.word_list:
+            self.word_list.remove(word)
+
+    def check_word(self, word):
+        return word in self.word_list
+
 name = input("Enter your name: ")
 game = Game(name)
 game.start_game()
-
