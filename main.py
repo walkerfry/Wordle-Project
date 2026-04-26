@@ -1,5 +1,14 @@
 
 import random
+#Colors Code 
+#Use these links to figure out how to use color
+#https://gist.github.com/JBlond/2fea43a3049b38287e5e9cefc87b2124 & https://realpython.com/python-wordle-clone/#keep-track-of-previous-guesses-and-color-them
+
+
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+GREY = "\033[90m"
+RESET = "\033[0m"
 
 #Player Class
 class Player:
@@ -61,11 +70,11 @@ class Game:
 
         for i in range(5):
             if guess[i] == self.secret_word[i]:
-                result += guess[i].upper()
+                result += GREEN + guess[i].upper() + RESET + " "
             elif guess[i] in self.secret_word:
-                result += guess[i]
+                result += YELLOW + guess[i].upper() + RESET + " "
             else:
-                result += "_"
+                result +=  GREY + guess[i].upper() + RESET + " "
         
         return result
     
