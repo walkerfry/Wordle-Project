@@ -1,124 +1,135 @@
+import pgzrun
 import random
-#Colors Code 
-#Use these links to figure out how to use color
-#https://gist.github.com/JBlond/2fea43a3049b38287e5e9cefc87b2124 & https://realpython.com/python-wordle-clone/#keep-track-of-previous-guesses-and-color-them
 
+WIDTH = 500
+HEIGHT = 800
 
-GREEN = "\033[92m"
-YELLOW = "\033[93m"
-GREY = "\033[90m"
-RESET = "\033[0m"
+GREEN = (106, 170, 100)
+YELLOW = (201, 180, 88)
+GREY = (120, 124, 126)
+WHITE = (255, 255, 255)
 
-#Player Class
 class Player:
     def __init__(self, name):
         self.name = name
         self.guesses = []
 
-    def submit_guess(self, guess):
-        self.guesses.append(guess)
-    
+    def submit_guess(self, colored_guess):
+        self.guesses.append(colored_guess)
+
     def number_guesses(self):
         return len(self.guesses)
-    
+
     def word_guesses(self):
         return self.guesses
-    
-#Wordbank Class
-class Wordchoice:
-    def __init__(self):
-        self.words = ["apple", "grape", "green", "bread", "welch", "light", "house", "clean"]
 
-    def get_random_word(self):
-        return random.choice(self.words)
-    
-#Game Class
-class Game:
-    def __init__(self, player_name):
-        self.player = Player(player_name)
-        self.word_bank = WordChoice()
-        self.secret_word = self.word_bank.random_word().lower()
-        self.max_guesses = 6
-        self.attempts = 0
-
-    def start_game(self):
-        print("Welcome", self.player.name)
-        print("Guess 5-Letter Word!")
-        print("You will have", self.max_guesses, "attempts.\n")
-
-        while not self.gameover():
-            guess = input(f"Enter guess ({self.attempts+1}/6): ").lower()
-
-            feedback = self.guess_checker(guess)
-
-            if "Invalid" in feedback:
-                print(feedback)
-                continue
-
-            self.player.submit_guess(guess)
-            self.attempts += 1
-
-            if guess == self.secret_word:
-                print(f"You Win! {self.secret_word} guessed in {self.attempts} attempts")
-                return
-            
-            self.result(feedback)
-        
-        print("Game Over! Word was:", self.secret_word)
-
-    def guess_checker(self, guess):
-        result = ["_"] * 5
-        secret = list(self.secret_word)
-
-        if len(guess) != 5 or not guess.isalpha():
-            return "Invalid Guess: guess must be a 5 letter word"
-        
-        for i in range(5):
-            if guess[i] == secret[i]:
-                result[i] = guess[i].upper()
-                secret[i] = None
-            
-        for i in range(5):
-            if guess[i] == self.secret_word[i]:
-                result += GREEN + guess[i].upper() + RESET + " "
-            elif guess[i] in self.secret_word:
-                result += YELLOW + guess[i].upper() + RESET + " "
-            else:
-                result +=  GREY + guess[i].upper() + RESET + " "
-        
-        return "".join(result)
-    
-    def result(self, feedback):
-        print("Result:", feedback)
-        print("Past Guesses:", self.player.word_guesses())
-        print()
-
-    def gameover(self):
-        return self.attempts >= self.max_guesses
-
-
-class WordChoice():
+class WordChoice:
     def __init__(self):
         self.word_list = self.load_words()
 
     def load_words(self):
         with open("wordlist.txt", "r") as file:
-            words = file.read().splitlines()
-        return words
-    
+            return file.read().splitlines()
+
     def random_word(self):
-        return random.choice(self.word_list)
+        return random.choice(self.word_list).upper()
+
+class Game:
+    def __init__(self, player_name):
+        self.player = Player(player_name)
+        self.word_bank = WordChoice()
+        self.secret_word = self.word_bank.random_word()
+        self.max_guesses = 6
+        self.attempts = 0
     
-    def add_word(self, word):
-        self.word_list.append(word)
+    def guess_checker(self, guess):
+        if len(guess) != 5 or not guess.isalpha():
+            return None
+        
+        result = [None] * 5
+        secret = list(self.secret_word)
 
-    def remove_word(self, word):
-        if word in self.word_list:
-            self.word_list.remove(word)
+        # Green letters
+        for i in range(5):
+            if guess[i] == secret[i]:
+                result[i] = (guess[i].upper(), GREEN)
+                secret[i] = None
 
-    def check_word(self, word):
-        return word in self.word_list
+        # Yellow / Grey
+        for i in range(5):
+            if result[i] is None:
+                if guess[i] in secret:
+                    result[i] = (guess[i].upper(), YELLOW)
+                    secret[secret.index(guess[i])] = None
+                else:
+                    result[i] = (guess[i].upper(), GREY)
 
-name = input("Enter your name: ")
-game = Game(name)
-game.start_game()
+        return result
+
+    def gameover(self):
+        return self.attempts >= self.max_guesses
+
+def draw(): #ai assistance for some visuals
+    screen.clear()
+
+    screen.draw.text("WORDLE", center=(WIDTH // 2, 20),  fontsize=30)
+
+    for row in range(6):
+        for col in range(5):
+            x = col * 85 + 50
+            y = row * 85 + 50
+
+            screen.draw.rect(Rect((x, y), (60, 60)), GREY)
+
+    for row, guess in enumerate(game.player.guesses): #assistance
+            for col, (letter, color) in enumerate(guess):
+                x = col * 85 + 50
+                y = row * 85 + 50
+
+                screen.draw.filled_rect(Rect((x, y), (60, 60)), color)
+
+                screen.draw.text(letter, (x+20, y+10), fontsize=40, color="white")
+
+        # Draw current guess
+    if not game.gameover():
+        for col, letter in enumerate(current_guess): #assistance
+            x = col * 85 + 50
+            y = len(game.player.guesses) * 85 + 50
+
+            screen.draw.text(letter, (x+20, y+10), fontsize=40, color="white")
+
+current_guess = ""
+game = Game("Player")
+
+def on_key_down(key):
+    global current_guess
+
+    if key == key.BACKSPACE:
+        current_guess = current_guess[:-1]
+        
+    elif key == key.RETURN:
+        if len(current_guess) == 5 and not game.gameover():
+            feedback = game.guess_checker(current_guess)
+
+            if feedback is None:
+                print("Guess must be 5 letters.")
+                return
+
+            game.player.submit_guess(feedback)
+            game.attempts += 1
+
+            if current_guess == game.secret_word:
+                print(f"You Win! {game.secret_word} guessed in {game.attempts} attempts")
+
+            elif game.gameover(): 
+                print(f"Game Over! The word was {game.secret_word}")
+                
+            current_guess = ""
+
+    else:
+        if len(current_guess) < 5:
+            letter = key.name
+            if len(letter) == 1 and letter.isalpha():
+                current_guess += letter.upper()
+
+pgzrun.go()
