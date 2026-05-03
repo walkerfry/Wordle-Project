@@ -41,6 +41,8 @@ class Game:
         self.secret_word = self.word_bank.random_word()
         self.max_guesses = 6
         self.attempts = 0
+        self.message = ""
+        self.correct_guess = False
     
     def guess_checker(self, guess):
         if len(guess) != 5 or not guess.isalpha():
@@ -67,28 +69,28 @@ class Game:
         return result
 
     def gameover(self):
-        return self.attempts >= self.max_guesses
-
+        return self.attempts >= self.max_guesses or self.correct_guess
+    
+    def restart(self):
+        global game, current_guess
+        game = Game("Player")
+        current_guess = ""
 def draw(): #ai assistance for some visuals
     screen.clear()
-
-    screen.draw.text("WORDLE", center=(WIDTH // 2, 20),  fontsize=30)
+    screen.draw.text("WORDLE", center=(WIDTH // 2, 25),  fontsize=40)
 
     for row in range(6):
         for col in range(5):
             x = col * 85 + 50
             y = row * 85 + 50
-
             screen.draw.rect(Rect((x, y), (60, 60)), GREY)
 
     for row, guess in enumerate(game.player.guesses): #assistance
             for col, (letter, color) in enumerate(guess):
                 x = col * 85 + 50
                 y = row * 85 + 50
-
                 screen.draw.filled_rect(Rect((x, y), (60, 60)), color)
-
-                screen.draw.text(letter, (x+20, y+10), fontsize=40, color="white")
+                screen.draw.text(letter, (x+20, y+15), fontsize=40, color="white")
 
         # Draw current guess
     if not game.gameover():
@@ -96,7 +98,11 @@ def draw(): #ai assistance for some visuals
             x = col * 85 + 50
             y = len(game.player.guesses) * 85 + 50
 
-            screen.draw.text(letter, (x+20, y+10), fontsize=40, color="white")
+            screen.draw.text(letter, (x+20, y+15), fontsize=40, color="white")
+    if game.gameover():
+        screen.draw.text("Press (R) to play again or (ESC) to exit", center=(WIDTH // 2, 650),  fontsize=30)
+    if game.message:
+        screen.draw.text(game.message, center=(WIDTH // 2, 600),  fontsize=35)
 
 current_guess = ""
 game = Game("Player")
@@ -104,32 +110,40 @@ game = Game("Player")
 def on_key_down(key):
     global current_guess
 
-    if key == key.BACKSPACE:
-        current_guess = current_guess[:-1]
-        
-    elif key == key.RETURN:
-        if len(current_guess) == 5 and not game.gameover():
-            feedback = game.guess_checker(current_guess)
+    if key == keys.ESCAPE:
+        exit()
 
-            if feedback is None:
-                print("Guess must be 5 letters.")
-                return
+    if key == keys.R and game.gameover():
+            game.restart()
+            return
+    
+    if not game.gameover():
+        if key == keys.BACKSPACE:
+            current_guess = current_guess[:-1]
 
-            game.player.submit_guess(feedback)
-            game.attempts += 1
+        elif key == keys.RETURN:
+            if len(current_guess) == 5 and not game.gameover():
+                feedback = game.guess_checker(current_guess)
 
-            if current_guess == game.secret_word:
-                print(f"You Win! {game.secret_word} guessed in {game.attempts} attempts")
+                if feedback is None:
+                    game.message = ("Guess must be 5 letters.")
+                    return
 
-            elif game.gameover(): 
-                print(f"Game Over! The word was {game.secret_word}")
-                
-            current_guess = ""
+                game.player.submit_guess(feedback)
+                game.attempts += 1
 
-    else:
-        if len(current_guess) < 5:
-            letter = key.name
-            if len(letter) == 1 and letter.isalpha():
-                current_guess += letter.upper()
+                if current_guess == game.secret_word:
+                    game.correct_guess = True
+                    game.message = (f"You Win! {game.secret_word} guessed in {game.attempts} attempts")
+                elif game.attempts >= game.max_guesses:
+                    game.message = (f"Game Over! The word was {game.secret_word}")
+                             
+                current_guess = ""
 
+        else:
+            if len(current_guess) < 5:
+                letter = key.name
+                if len(letter) == 1 and letter.isalpha():
+                    current_guess += letter.upper()
+    
 pgzrun.go()
