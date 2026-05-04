@@ -1,39 +1,58 @@
-import pgzrun
+import pygame
 import random
 
-WIDTH = 500
-HEIGHT = 800
+pygame.init()
 
-GREEN = (106, 170, 100)
-YELLOW = (201, 180, 88)
-GREY = (120, 124, 126)
+#Screen
+WIDTH, HEIGHT = 500, 650
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Wordle")
+
+FONT = pygame.font.SysFont(None, 50)
+SMALL_FONT = pygame.font.SysFont(None, 28)
+
+GREEN = (83, 141, 78)
+YELLOW = (181, 159, 59)
+GREY = (58, 58, 60)
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
+
+#Player
 class Player:
     def __init__(self, name):
         self.name = name
         self.guesses = []
+        self.used_letters = {}
 
-    def submit_guess(self, colored_guess):
-        self.guesses.append(colored_guess)
+    def submit_guess(self, guess, colors):
+        self.guesses.append((guess, colors))
 
-    def number_guesses(self):
-        return len(self.guesses)
+        # track used letters
+        for i in range(5):
+            letter = guess[i]
+            color = colors[i]
 
-    def word_guesses(self):
-        return self.guesses
+            if letter not in self.used_letters:
+                self.used_letters[letter] = color
+            else:
+                if color == GREEN:
+                    self.used_letters[letter] = GREEN
+                elif color == YELLOW and self.used_letters[letter] != GREEN:
+                    self.used_letters[letter] = YELLOW
 
+
+#Word
 class WordChoice:
     def __init__(self):
-        self.word_list = self.load_words()
-
-    def load_words(self):
-        with open("wordlist.txt", "r") as file:
-            return file.read().splitlines()
+        with open("wordlist.txt") as f:
+            self.word_list = f.read().splitlines()
 
     def random_word(self):
-        return random.choice(self.word_list).upper()
+        return random.choice(self.word_list).lower()
 
+
+#Game
 class Game:
     def __init__(self, player_name):
         self.player = Player(player_name)
@@ -41,109 +60,106 @@ class Game:
         self.secret_word = self.word_bank.random_word()
         self.max_guesses = 6
         self.attempts = 0
-        self.message = ""
-        self.correct_guess = False
-    
+        self.current_guess = ""
+        self.game_over = False
+
     def guess_checker(self, guess):
         if len(guess) != 5 or not guess.isalpha():
-            return None
+            return "Invalid guess"
         
-        result = [None] * 5
+        result = [GREY] * 5
         secret = list(self.secret_word)
 
-        # Green letters
+        # GREEN
         for i in range(5):
             if guess[i] == secret[i]:
-                result[i] = (guess[i].upper(), GREEN)
+                result[i] = GREEN
                 secret[i] = None
 
-        # Yellow / Grey
+        # YELLOW
         for i in range(5):
-            if result[i] is None:
-                if guess[i] in secret:
-                    result[i] = (guess[i].upper(), YELLOW)
-                    secret[secret.index(guess[i])] = None
-                else:
-                    result[i] = (guess[i].upper(), GREY)
+            if result[i] == GREY and guess[i] in secret:
+                result[i] = YELLOW
+                secret[secret.index(guess[i])] = None
 
         return result
 
-    def gameover(self):
-        return self.attempts >= self.max_guesses or self.correct_guess
-    
-    def restart(self):
-        global game, current_guess
-        game = Game("Player")
-        current_guess = ""
-def draw(): #ai assistance for some visuals
-    screen.clear()
-    screen.draw.text("WORDLE", center=(WIDTH // 2, 25),  fontsize=40)
+    def submit(self):
+        if len(self.current_guess) != 5:
+            return
+
+        colors = self.guess_checker(self.current_guess)
+        self.player.submit_guess(self.current_guess, colors)
+        self.attempts += 1
+
+        if self.current_guess == self.secret_word or self.attempts >= self.max_guesses:
+            self.game_over = True
+
+        self.current_guess = ""
+
+game = Game("Player")
+
+#Draw
+def draw():
+    screen.fill(BLACK)
+
+    title = FONT.render("WORDLE", True, WHITE)
+    screen.blit(title, (170, 10))
 
     for row in range(6):
         for col in range(5):
-            x = col * 85 + 50
-            y = row * 85 + 50
-            screen.draw.rect(Rect((x, y), (60, 60)), GREY)
+            x = col * 80 + 50
+            y = row * 80 + 60
+            pygame.draw.rect(screen, GREY, (x, y, 60, 60), 2)
 
-    for row, guess in enumerate(game.player.guesses): #assistance
-            for col, (letter, color) in enumerate(guess):
-                x = col * 85 + 50
-                y = row * 85 + 50
-                screen.draw.filled_rect(Rect((x, y), (60, 60)), color)
-                screen.draw.text(letter, (x+20, y+15), fontsize=40, color="white")
+    for row, (word, colors) in enumerate(game.player.guesses):
+        for col in range(5):
+            x = col * 80 + 50
+            y = row * 80 + 60
 
-        # Draw current guess
-    if not game.gameover():
-        for col, letter in enumerate(current_guess): #assistance
-            x = col * 85 + 50
-            y = len(game.player.guesses) * 85 + 50
+            pygame.draw.rect(screen, colors[col], (x, y, 60, 60))
+            letter = FONT.render(word[col].upper(), True, WHITE)
+            screen.blit(letter, (x + 15, y + 10))
 
-            screen.draw.text(letter, (x+20, y+15), fontsize=40, color="white")
-    if game.gameover():
-        screen.draw.text("Press (R) to play again or (ESC) to exit", center=(WIDTH // 2, 650),  fontsize=30)
-    if game.message:
-        screen.draw.text(game.message, center=(WIDTH // 2, 600),  fontsize=35)
+    for i, letter in enumerate(game.current_guess):
+        x = i * 80 + 50
+        y = len(game.player.guesses) * 80 + 60
+        text = FONT.render(letter.upper(), True, WHITE)
+        screen.blit(text, (x + 15, y + 10))
 
-current_guess = ""
-game = Game("Player")
+    x, y = 20, 580
+    for letter, color in sorted(game.player.used_letters.items()):
+        text = SMALL_FONT.render(letter.upper(), True, color)
+        screen.blit(text, (x, y))
+        x += 25
 
-def on_key_down(key):
-    global current_guess
+    if game.game_over:
+        msg = "YOU WIN!" if game.player.guesses and game.player.guesses[-1][0] == game.secret_word else f"WORD: {game.secret_word}"
+        text = SMALL_FONT.render(msg, True, WHITE)
+        screen.blit(text, (150, 620))
 
-    if key == keys.ESCAPE:
-        exit()
+    pygame.display.flip()
 
-    if key == keys.R and game.gameover():
-            game.restart()
-            return
-    
-    if not game.gameover():
-        if key == keys.BACKSPACE:
-            current_guess = current_guess[:-1]
 
-        elif key == keys.RETURN:
-            if len(current_guess) == 5 and not game.gameover():
-                feedback = game.guess_checker(current_guess)
+#Loop
+running = True
+while running:
+    draw()
 
-                if feedback is None:
-                    game.message = ("Guess must be 5 letters.")
-                    return
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-                game.player.submit_guess(feedback)
-                game.attempts += 1
+        if event.type == pygame.KEYDOWN and not game.game_over:
 
-                if current_guess == game.secret_word:
-                    game.correct_guess = True
-                    game.message = (f"You Win! {game.secret_word} guessed in {game.attempts} attempts")
-                elif game.attempts >= game.max_guesses:
-                    game.message = (f"Game Over! The word was {game.secret_word}")
-                             
-                current_guess = ""
+            if event.key == pygame.K_BACKSPACE:
+                game.current_guess = game.current_guess[:-1]
 
-        else:
-            if len(current_guess) < 5:
-                letter = key.name
-                if len(letter) == 1 and letter.isalpha():
-                    current_guess += letter.upper()
-    
-pgzrun.go()
+            elif event.key == pygame.K_RETURN:
+                game.submit()
+
+            else:
+                if len(game.current_guess) < 5 and event.unicode.isalpha():
+                    game.current_guess += event.unicode.lower()
+
+pygame.quit()
