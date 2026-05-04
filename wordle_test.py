@@ -38,3 +38,10 @@ class TestWordle(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+#test_correct_guess_all_green checks that a perfect guess returns all green values.
+#test_invalid_guess_length ensures that guesses with fewer than 5 letters return an error instead of crashing.
+#test_invalid_guess_non_alpha ensures that inputs with numbers or symbols are rejected.
+#test_some_yellow_letters verifies that correct letters in the wrong position are marked yellow.
+#test_some_grey_letters ensures that completely incorrect guesses return all gray.
+#test_duplicate_letters checks that repeated letters are handled correctly and not overcounted.

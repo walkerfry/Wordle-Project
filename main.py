@@ -19,6 +19,9 @@ BLACK = (0, 0, 0)
 
 
 #Player
+#It stores all the guesses the player has made and keeps a record of which letters have already been used.
+# When a guess is submitted, it saves the guess along with its colors and updates the used letters. 
+#It also makes sure the best color is kept for each letter, so green overrides yellow and gray, and yellow overrides gray.
 class Player:
     def __init__(self, name):
         self.name = name
@@ -28,7 +31,6 @@ class Player:
     def submit_guess(self, guess, colors):
         self.guesses.append((guess, colors))
 
-        # track used letters
         for i in range(5):
             letter = guess[i]
             color = colors[i]
@@ -53,6 +55,10 @@ class WordChoice:
 
 
 #Game
+#The guess_checker method compares your guess to the secret word and decides the colors for each letter—green for correct spot.
+#Yellow for correct letter in the wrong spot, and gray if it’s not in the word. 
+#The submit method takes your current guess, checks it, saves it, increases the number of attempts.
+#Ends the game if you win or run out of tries.
 class Game:
     def __init__(self, player_name):
         self.player = Player(player_name)
@@ -100,6 +106,12 @@ class Game:
 game = Game("Player")
 
 #Draw
+#This function draws everything on the screen. 
+# It clears the screen, shows the title, and draws the grid for the guesses. 
+# It then fills in the boxes with the player’s past guesses and colors them based on correctness. 
+# It also shows the current guess as you type and displays the letters you’ve already used at the bottom. 
+# If the game is over, it shows a win message or the correct word. 
+# It updates the screen.
 def draw():
     screen.fill(BLACK)
 
@@ -142,6 +154,9 @@ def draw():
 
 
 #Loop
+#This is the main loop that keeps the game running. 
+#It keeps updating the screen and checks what the player is doing. 
+#You can type letters to make a guess, use backspace to delete, and press enter to submit it.
 running = True
 while running:
     draw()
@@ -163,3 +178,12 @@ while running:
                     game.current_guess += event.unicode.lower()
 
 pygame.quit()
+
+#AI Assist
+#We used AI to help set up the screen and the draw function.
+#It also helped us organize our code better into classes and clean up the structure. 
+
+#Gitwork Flow
+#We used the gitwork flow to make changes, mainly within the main.py file.
+#Had challenges at time pulling the right branch into the main branch to remian stable
+#Pulling helped us to make sure we were working on the most updated version of code
