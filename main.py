@@ -68,10 +68,9 @@ class Game:
         self.attempts = 0
         self.current_guess = ""
         self.game_over = False
+        self.message = ""
 
     def guess_checker(self, guess):
-        if len(guess) != 5 or not guess.isalpha():
-            return "Invalid guess"
         
         result = [GREY] * 5
         secret = list(self.secret_word)
@@ -92,6 +91,7 @@ class Game:
 
     def submit(self):
         if len(self.current_guess) != 5:
+            self.message = "GUESS MUST BE A 5-LETTER WORD"
             return
 
         colors = self.guess_checker(self.current_guess)
@@ -145,13 +145,16 @@ def draw():
         screen.blit(text, (x, y))
         x += 25
 
+    if game.message:
+        msg = SMALL_FONT.render(game.message, True, WHITE)
+        screen.blit(msg, (70, 620))
+        
     if game.game_over:
         msg = "YOU WIN!" if game.player.guesses and game.player.guesses[-1][0] == game.secret_word else f"WORD: {game.secret_word}"
         text = SMALL_FONT.render(msg, True, WHITE)
-        screen.blit(text, (150, 620))
+        screen.blit(text, (190, 620))
 
     pygame.display.flip()
-
 
 #Loop
 #This is the main loop that keeps the game running. 
@@ -176,6 +179,7 @@ while running:
             else:
                 if len(game.current_guess) < 5 and event.unicode.isalpha():
                     game.current_guess += event.unicode.lower()
+                    game.message = ""
 
 pygame.quit()
 
