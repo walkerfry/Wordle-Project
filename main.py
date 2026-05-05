@@ -68,6 +68,7 @@ class Game:
         self.attempts = 0
         self.current_guess = ""
         self.game_over = False
+        self.message = ""
 
     def guess_checker(self, guess):
         if len(guess) != 5 or not guess.isalpha():
@@ -92,6 +93,7 @@ class Game:
 
     def submit(self):
         if len(self.current_guess) != 5:
+            self.message = "Word is too short"
             return
 
         colors = self.guess_checker(self.current_guess)
@@ -117,6 +119,10 @@ def draw():
 
     title = FONT.render("WORDLE", True, WHITE)
     screen.blit(title, (170, 10))
+
+    if game.message:
+        text = SMALL_FONT.render(game.message, True, WHITE)
+        screen.blit(text, (160, 620))
 
     for row in range(6):
         for col in range(5):
@@ -148,7 +154,7 @@ def draw():
     if game.game_over:
         msg = "YOU WIN!" if game.player.guesses and game.player.guesses[-1][0] == game.secret_word else f"WORD: {game.secret_word}"
         text = SMALL_FONT.render(msg, True, WHITE)
-        screen.blit(text, (150, 620))
+        screen.blit(text, (180, 620))
 
     pygame.display.flip()
 
@@ -166,6 +172,7 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN and not game.game_over:
+            game.message = ""
 
             if event.key == pygame.K_BACKSPACE:
                 game.current_guess = game.current_guess[:-1]
