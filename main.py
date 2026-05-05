@@ -149,14 +149,13 @@ def draw():
 
     if game.message:
         msg = SMALL_FONT.render(game.message, True, WHITE)
-        rect = text.get_rect(center=(WIDTH/2, 620))
+        rect = msg.get_rect(center=(WIDTH//2, 620))
         screen.blit(msg, rect)
         
     if game.game_over:
         msg = "YOU WIN!" if game.player.guesses and game.player.guesses[-1][0] == game.secret_word else f"WORD: {game.secret_word}"
         text = SMALL_FONT.render(msg, True, WHITE)
-        rect = text.get_rect(center=(WIDTH/2, 620))
-        screen.blit(text, rect)
+        screen.blit(text, (200, 620))
 
     pygame.display.flip()
 
