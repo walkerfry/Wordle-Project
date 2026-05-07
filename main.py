@@ -189,40 +189,41 @@ def draw():
 #This is the main loop that keeps the game running. 
 #It keeps updating the screen and checks what the player is doing. 
 #You can type letters to make a guess, use backspace to delete, and press enter to submit it.
-running = True
-while running:
-    if display_directions:
-        draw_directions()
-    else:
-        draw()
+if __name__ == "__main__":
+    running = True
+    while running:
+        if display_directions:
+            draw_directions()
+        else:
+            draw()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-        if event.type == pygame.KEYDOWN:
-            game.message = ""
-
-            if event.key == pygame.K_ESCAPE:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 running = False
 
-            elif display_directions:
-                if event.type == pygame.KEYDOWN:
-                    display_directions = False
-            elif not game.game_over:
+            if event.type == pygame.KEYDOWN:
+                game.message = ""
 
-                if event.key == pygame.K_BACKSPACE:
-                    game.current_guess = game.current_guess[:-1]
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
-                elif event.key == pygame.K_RETURN:
-                    game.submit()
+                elif display_directions:
+                    if event.type == pygame.KEYDOWN:
+                        display_directions = False
+                elif not game.game_over:
 
-                else:
-                    if len(game.current_guess) < 5 and event.unicode.isalpha():
-                        game.current_guess += event.unicode.lower()
-                        game.message = ""
+                    if event.key == pygame.K_BACKSPACE:
+                        game.current_guess = game.current_guess[:-1]
 
-pygame.quit()
+                    elif event.key == pygame.K_RETURN:
+                        game.submit()
+
+                    else:
+                        if len(game.current_guess) < 5 and event.unicode.isalpha():
+                            game.current_guess += event.unicode.lower()
+                            game.message = ""
+
+    pygame.quit()
 
 #AI Assist
 #We used AI to help set up the screen and the draw function.
