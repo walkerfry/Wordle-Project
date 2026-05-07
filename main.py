@@ -53,7 +53,6 @@ class WordChoice:
     def random_word(self):
         return random.choice(self.word_list).lower()
 
-
 #Game
 #The guess_checker method compares your guess to the secret word and decides the colors for each letter—green for correct spot.
 #Yellow for correct letter in the wrong spot, and gray if it’s not in the word. 
@@ -72,7 +71,7 @@ class Game:
 
     def guess_checker(self, guess):
         if len(guess) != 5 or not guess.isalpha():
-            return "Invalid guess"
+            return None
         
         result = [GREY] * 5
         secret = list(self.secret_word)
@@ -93,7 +92,7 @@ class Game:
 
     def submit(self):
         if len(self.current_guess) != 5:
-            self.message = "Word is too short"
+            self.message = "GUESS MUST BE A 5-LETTER WORD"
             return
 
         colors = self.guess_checker(self.current_guess)
@@ -114,6 +113,33 @@ game = Game("Player")
 # It also shows the current guess as you type and displays the letters you’ve already used at the bottom. 
 # If the game is over, it shows a win message or the correct word. 
 # It updates the screen.
+display_directions = True
+
+def draw_directions():
+    screen.fill(BLACK)
+
+    title = FONT.render("WORDLE", True, WHITE)
+    screen.blit(title, (170, 10))
+
+    directions = [
+        ("Guess the 5-letter word in 6 tries.", WHITE),
+        ("Green = correct letter and spot.", GREEN),
+        ("Yellow = correct letter, wrong spot.", YELLOW),
+        ("Grey = letter not in the word.", GREY),
+        ("", WHITE),
+        ("Press any key to start", WHITE),
+        ("Press ESC to quit", WHITE)
+    ]
+    y = 180
+
+    for line, color in directions:
+        text = SMALL_FONT.render(line, True, color)
+        rect = text.get_rect(center=(WIDTH//2, y))
+        screen.blit(text, rect)
+        y += 40
+
+    pygame.display.flip()
+
 def draw():
     screen.fill(BLACK)
 
@@ -121,8 +147,9 @@ def draw():
     screen.blit(title, (170, 10))
 
     if game.message:
-        text = SMALL_FONT.render(game.message, True, WHITE)
-        screen.blit(text, (160, 620))
+        msg = SMALL_FONT.render(game.message, True, WHITE)
+        rect = msg.get_rect(center=(WIDTH//2, 620))
+        screen.blit(msg, rect)
 
     for row in range(6):
         for col in range(5):
@@ -158,31 +185,42 @@ def draw():
 
     pygame.display.flip()
 
-
 #Loop
 #This is the main loop that keeps the game running. 
 #It keeps updating the screen and checks what the player is doing. 
 #You can type letters to make a guess, use backspace to delete, and press enter to submit it.
 running = True
 while running:
-    draw()
+    if display_directions:
+        draw_directions()
+    else:
+        draw()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.KEYDOWN and not game.game_over:
+        if event.type == pygame.KEYDOWN:
             game.message = ""
 
-            if event.key == pygame.K_BACKSPACE:
-                game.current_guess = game.current_guess[:-1]
+            if event.key == pygame.K_ESCAPE:
+                running = False
 
-            elif event.key == pygame.K_RETURN:
-                game.submit()
+            elif display_directions:
+                if event.type == pygame.KEYDOWN:
+                    display_directions = False
+            elif not game.game_over:
 
-            else:
-                if len(game.current_guess) < 5 and event.unicode.isalpha():
-                    game.current_guess += event.unicode.lower()
+                if event.key == pygame.K_BACKSPACE:
+                    game.current_guess = game.current_guess[:-1]
+
+                elif event.key == pygame.K_RETURN:
+                    game.submit()
+
+                else:
+                    if len(game.current_guess) < 5 and event.unicode.isalpha():
+                        game.current_guess += event.unicode.lower()
+                        game.message = ""
 
 pygame.quit()
 
