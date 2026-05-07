@@ -15,11 +15,11 @@ class TestWordle(unittest.TestCase):
 
     def test_invalid_guess_length(self):
         result = self.game.guess_checker("abc")
-        self.assertEqual(result, "Invalid guess")
+        self.assertEqual(result, None)
 
     def test_invalid_guess_non_alpha(self):
         result = self.game.guess_checker("ab12!")
-        self.assertEqual(result, "Invalid guess")
+        self.assertEqual(result, None)
 
     def test_some_yellow_letters(self):
         result = self.game.guess_checker("pleap")
@@ -32,8 +32,34 @@ class TestWordle(unittest.TestCase):
     def test_duplicate_letters(self):
         self.game.secret_word = "apple"
         result = self.game.guess_checker("ppppp")
-
         self.assertEqual(result.count(GREEN) + result.count(YELLOW), 2)
+
+    def test_max_guesses_reached(self):
+        self.game.secret_word = "apple"
+        for _ in range(6):
+            self.game.current_guess = "guess"
+            self.game.submit()
+        self.assertTrue(self.game.game_over)
+
+    def test_game_over_win(self):
+        self.game.current_guess = "apple"
+        self.game.submit()
+        self.assertTrue(self.game.game_over)
+    
+    def test_attempts_increase(self):
+        self.game.current_guess = "guess"
+        self.game.submit()
+        self.assertEqual(self.game.attempts, 1)
+
+    def test_current_guess_reset(self):
+        self.game.current_guess = "guess"
+        self.game.submit()
+        self.assertEqual(self.game.current_guess, "")
+
+    def test_saved_previous_guesses(self):
+        self.game.current_guess = "guess"
+        self.game.submit()
+        self.assertEqual(len(self.game.player.guesses), 1)
 
 
 if __name__ == "__main__":
